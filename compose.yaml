@@ -1,0 +1,16 @@
+services:
+  api:
+    build: .
+    ports: ["8080:8080"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      nats: {condition: service_started}
+  postgres:
+    image: postgres:16-alpine
+    environment: {POSTGRES_PASSWORD: example, POSTGRES_DB: commitments}
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres -d commitments"], interval: 3s, timeout: 2s, retries: 10}
+    volumes: ["commitment-db:/var/lib/postgresql/data"]
+  nats:
+    image: nats:2.10-alpine
+    command: ["-js"]
+volumes: {commitment-db: {}}
